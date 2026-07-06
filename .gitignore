@@ -1,13 +1,2 @@
-# Python-Cache ignorieren
+# den automatischen Python-Cache-Ordner ignorieren
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Lokale Umgebungen und Paketmanager-Ordner von uv ignorieren
-.venv/
-.uv/
-
-# Betriebssystem-Dateien ignorieren
-.DS_Store
-Thumbs.db
