@@ -4,7 +4,9 @@ version = "0.1.0"
 description = "Ein digitales Notenbuch zur Verwaltung von Studenten, Kursen und Noten mit statistischer Auswertung."
 readme = "README.md"
 requires-python = ">=3.14"
-dependencies = []
+dependencies = [
+    "pytest>=9.1.1",
+]
 
 [dependency-groups]
 dev = [
