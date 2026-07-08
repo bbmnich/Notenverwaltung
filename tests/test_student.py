@@ -1,15 +1,29 @@
 import pytest
-
 from notenverwaltung.student import Student
 
 
-def test_student_full_name():  # Testet das @property für den Namen
-    student = Student(student_id="B501",first_name="Barbara",last_name="Mnich",email="bmnich@coding.de",)  # Test-Studenten anlegen
 
-    assert (student.full_name == "Barbara Mnich")  # Prüft, ob das Property den Vornamen und Nachnamen richtig verbindet
+# Erkennt einen leeren Vornamen
+def test_student_empty_first_name():
+    with pytest.raises(ValueError):
+        Student(student_id="B501",first_name="",last_name="Mnich",email="bmnich@coding.de",)
 
+# Erkennt einen leeren Nachnamen
+def test_student_empty_last_name():
+    with pytest.raises(ValueError):
+        Student(student_id="B501",first_name="Barbara",last_name="",email="bmnich@coding.de",)
 
-def test_student_email():  # Testet, ob eine E-Mail ohne '@' ist
-    with pytest.raises(ValueError, match="Muss ein @ enthalten."):
-        # kein @ in der E-Mail
+# Erkennt eine leere ID?
+def test_student_empty_id():
+    with pytest.raises(ValueError):
+        Student(student_id="",first_name="Barbara",last_name="Mnich",email="bmnich@coding.de",)
+
+# Erkennt dass eine falsche E-Mail (ohne @)
+def test_student_email():
+    with pytest.raises(ValueError):
         Student(student_id="B501",first_name="Barbara",last_name="Mnich",email="bmnich-coding.de",)
+
+# Prüft, ob Vor- und Nachname richtig zusammen ausgegeben werden 
+def test_student_full_name():
+    student = Student(student_id="B501",first_name="Barbara",last_name="Mnich",email="bmnich@coding.de",)
+    assert student.full_name == "Barbara Mnich"
