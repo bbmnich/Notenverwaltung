@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from notenverwaltung.student import Student
 from notenverwaltung.course import Course
 from dataclasses import dataclass, field
+import re
 
 @dataclass
 class Grade:
@@ -112,3 +113,27 @@ class GradeBook:
             if g.course.course_id == course_id:
                 filtered_grades.append(g)
         return filtered_grades
+    
+    #################################
+    #Suche Implementieren 
+    #################################
+    
+    def search_students(self, query: str):
+        matching_students = []
+        muster = re.compile(query, re.IGNORECASE) # Suchmuster erstellen (Groß-/Kleinschreibung ignorieren)
+        
+        for s in self.students:
+            # Prüfen, ob das Muster im Vornamen, Nachnamen oder der E-Mail vorkommt
+            if muster.search(s.first_name) or muster.search(s.last_name) or muster.search(s.email):
+                matching_students.append(s) # Bei Treffer zur Liste hinzufügen
+        return matching_students
+
+    def search_courses(self, query: str):
+        matching_courses = []
+        muster = re.compile(query, re.IGNORECASE) # Suchmuster erstellen
+        
+        for c in self.courses:
+            # Prüfen, ob das Muster im Kursnamen vorkommt
+            if muster.search(c.course_name):
+                matching_courses.append(c) # Bei Treffer zur Liste hinzufügen
+        return matching_courses
