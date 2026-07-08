@@ -114,26 +114,98 @@ class GradeBook:
                 filtered_grades.append(g)
         return filtered_grades
     
+    #########################################################################
+    # Statistiken & Auswertungen
+    #########################################################################
+
+    def student_average(self, student_id: str):
+        """Berechnet den Durchschnitt alle seine Kurse."""
+        noten = self.get_student_grades(student_id)
+        if not noten:
+            return 0.0
+        
+        gesamt_prozent = 0.0
+        for g in noten:
+            gesamt_prozent += g.percentage
+        return gesamt_prozent / len(noten)
+
+    def course_average(self, course_id: str):
+        """Berechnet den durchschnittliche Punkte für einen Kurs."""
+        noten = self.get_course_grades(course_id)
+        if not noten:
+            return 0.0
+        
+        gesamt_score = 0.0
+        for g in noten:
+            gesamt_score += g.score
+        return gesamt_score / len(noten)
+
+    def course_pass_rate(self, course_id: str):
+        """Berechnet den Prozentsatz der Bestehensnote (0.0 bis 100.0)."""
+        noten = self.get_course_grades(course_id)
+        if not noten:
+            return 0.0
+        
+        bestandene_pruefungen = 0
+        for g in noten:
+            if g.is_passing:
+                bestandene_pruefungen += 1
+                
+        return (bestandene_pruefungen / len(noten)) * 100
+
+    def top_students(self, n: int):
+        """Top  Studenten basierend auf Gesamtdurchschnitt"""
+        studenten_schnitte = []
+        
+        for s in self.students:
+            schnitt = self.student_average(s.student_id)
+            # Wir nehmen nur Studenten auf, die überhaupt schon Noten haben
+            if len(self.get_student_grades(s.student_id)) > 0:
+                studenten_schnitte.append((s, schnitt))
+        
+    # Die besten Studenten Liste
+        ergebnis = []
+        for student, schnitt in studenten_schnitte[:n]:
+            ergebnis.append(student)
+        return ergebnis
+
+    def students_at_risk(self, threshold: float):
+        """Gibt Studenten zurück, deren Durchschnitt unter dem Schwellenwert liegt."""
+        gefaehrdete_studenten = []
+        
+        for s in self.students:
+            noten = self.get_student_grades(s.student_id)
+            if not noten:
+                continue # Ohne Noten- keinen Gefährdung
+                
+            schnitt = self.student_average(s.student_id)
+            if schnitt < threshold:
+                gefaehrdete_studenten.append(s)
+                
+        return gefaehrdete_studenten
+
+    
+    
     #################################
     #Suche Implementieren 
     #################################
     
     def search_students(self, query: str):
-        matching_students = []
+        studenten_treffer = []
         muster = re.compile(query, re.IGNORECASE) # Suchmuster erstellen (Groß-/Kleinschreibung ignorieren)
         
         for s in self.students:
             # Prüfen, ob das Muster im Vornamen, Nachnamen oder der E-Mail vorkommt
             if muster.search(s.first_name) or muster.search(s.last_name) or muster.search(s.email):
-                matching_students.append(s) # Bei Treffer zur Liste hinzufügen
-        return matching_students
+                studenten_treffer.append(s) # Bei Treffer zur Liste hinzufügen
+        return studenten_treffer
 
     def search_courses(self, query: str):
-        matching_courses = []
+        kurs_treffer = []
         muster = re.compile(query, re.IGNORECASE) # Suchmuster erstellen
         
         for c in self.courses:
             # Prüfen, ob das Muster im Kursnamen vorkommt
             if muster.search(c.course_name):
-                matching_courses.append(c) # Bei Treffer zur Liste hinzufügen
-        return matching_courses
+                kurs_treffer.append(c) # Bei Treffer zur Liste hinzufügen
+        return kurs_treffer
