@@ -133,7 +133,7 @@ class GradeBook:
         """Berechnet den durchschnittliche Punkte für einen Kurs."""
         noten = self.get_course_grades(course_id)
         if not noten:
-            return 0.0
+            return 0.0 # Fängt Randfälle (wie Sabine) ab, damit nicht durch 0 geteilt wird
         
         gesamt_score = 0.0
         for g in noten:
@@ -154,23 +154,36 @@ class GradeBook:
         return (bestandene_pruefungen / len(noten)) * 100
 
     def top_students(self, n: int):
-        """Top  Studenten basierend auf Gesamtdurchschnitt"""
-        studenten_schnitte = []
+        """Gibt die Top  Studenten basierend auf  Gesamtdurchschnitt zurück."""
+        # speichern Student_ID - Durchschnitt
+        schnitte_dict = {}
+        
+        # IDs von Studenten, die eine Note haben
+        studenten_mit_noten = {g.student.student_id for g in self.grades}
         
         for s in self.students:
-            schnitt = self.student_average(s.student_id)
-            # Wir nehmen nur Studenten auf, die überhaupt schon Noten haben
-            if len(self.get_student_grades(s.student_id)) > 0:
-                studenten_schnitte.append((s, schnitt))
+            if s.student_id in studenten_mit_noten:
+                schnitte_dict[s.student_id] = self.student_average(s.student_id)
         
-    # Die besten Studenten Liste
+        # Sortieren der Einträge nach dem Durchschnitt
+        sortierte_studenten = sorted(
+            self.students, 
+            key=lambda x: schnitte_dict.get(x.student_id, 0.0), 
+            reverse=True)
+        
+        return sortierte_studenten[:n]
+        
+        # Höchster Schnitt Index 1
+        studenten_schnitte.sort(key=lambda x: x[1], reverse=True)
+        
+        # Die besten Studenten Liste
         ergebnis = []
         for student, schnitt in studenten_schnitte[:n]:
             ergebnis.append(student)
         return ergebnis
 
     def students_at_risk(self, threshold: float):
-        """Gibt Studenten zurück, deren Durchschnitt unter dem Schwellenwert liegt."""
+        """Gibt Studenten zurück, deren Durchschnitt unter dem Wert liegt."""
         gefaehrdete_studenten = []
         
         for s in self.students:
