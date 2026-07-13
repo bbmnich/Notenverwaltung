@@ -4,8 +4,9 @@ from notenverwaltung.course import Course
 from dataclasses import dataclass, field
 import re
 from datetime import datetime
-import csv
 import json
+import csv
+
 
 @dataclass
 class Grade:
