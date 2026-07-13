@@ -20,5 +20,5 @@ class Course:
         if self.passing_grade <= 0 or self.passing_grade > self.max_grade:
             raise ValueError("Die Note muss groesser als 0 und kleiner oder gleich der max_Note sein.")
 
-    def __str__(self):
-        return "Kurs: " + self.course_name + " (" + self.course_id + ")"
+def __str__(self):
+    return f"Kurs: {self.course_name} ({self.course_id})"

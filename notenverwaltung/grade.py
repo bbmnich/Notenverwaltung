@@ -3,6 +3,9 @@ from notenverwaltung.student import Student
 from notenverwaltung.course import Course
 from dataclasses import dataclass, field
 import re
+from datetime import datetime
+import csv
+import json
 
 @dataclass
 class Grade:
@@ -203,7 +206,7 @@ class GradeBook:
     #Suche Implementieren 
     #################################
     
-    def search_students(self, query: str):
+def search_students(self, query: str):
         studenten_treffer = []
         muster = re.compile(query, re.IGNORECASE) # Suchmuster erstellen (Groß-/Kleinschreibung ignorieren)
         
@@ -213,7 +216,7 @@ class GradeBook:
                 studenten_treffer.append(s) # Bei Treffer zur Liste hinzufügen
         return studenten_treffer
 
-    def search_courses(self, query: str):
+def search_courses(self, query: str):
         kurs_treffer = []
         muster = re.compile(query, re.IGNORECASE) # Suchmuster erstellen
         
@@ -222,3 +225,75 @@ class GradeBook:
             if muster.search(c.course_name):
                 kurs_treffer.append(c) # Bei Treffer zur Liste hinzufügen
         return kurs_treffer
+    
+    #######################################
+    # JSON Import/Export CSV Import/Export
+    #######################################
+def to_dict(self):
+        """Wandelt das gesamte GradeBook übersichtlich in ein Dictionary um."""
+
+        studenten_liste = [] #Liste der Studenten
+        for s in self.students:
+            studenten_liste.append({"student_id": s.student_id,"first_name": s.first_name,"last_name": s.last_name,"email": s.email,})
+
+        
+        kurse_liste = [] #Liste der Kurse
+        for c in self.courses:
+            kurse_liste.append({"course_id": c.course_id,"course_name": c.course_name,"max_grade": c.max_grade,"passing_grade": c.passing_grade,})
+        
+        noten_liste = [] #Liste der Noten sauber + Datum
+        for g in self.grades:
+            noten_liste.append({"student_id": g.student.student_id,"course_id": g.course.course_id,"score": g.score,"created_at": g.created_at.strftime("%d.%m.%Y"),})
+
+       
+        return {"students": studenten_liste,"courses": kurse_liste,"grades": noten_liste,} #  Alles als Dictionary
+
+def from_dict(self, data):
+        """GradeBook wird mit den Daten aus Dictionary befüllt"""
+        # Leere Listen 
+        self.students = []
+        self.courses = []
+        self.grades = []
+
+        # Studenten wiederherstellen
+        for s in data.get("students", []):
+            neuer_student = Student(s["student_id"], s["first_name"], s["last_name"], s["email"])
+            self.students.append(neuer_student)
+
+        # Kurse wiederherstellen
+        for c in data.get("courses", []):
+            neuer_kurs = Course(c["course_id"], c["course_name"], c["max_grade"], c["passing_grade"])
+            self.courses.append(neuer_kurs)
+
+        # Noten wiederherstellen
+        for g in data.get("grades", []):
+            echter_student = None
+            for s in self.students:
+                if s.student_id == g["student_id"]:
+                    echter_student = s
+                    break
+
+            echter_kurs = None
+            for c in self.courses:
+                if c.course_id == g["course_id"]:
+                    echter_kurs = c
+                    break
+
+            echtes_datum = datetime.strptime(g["created"], "%d.%m.%Y")
+
+            neue_note = Grade(student=echter_student,course=echter_kurs,score=g["score"],created_at=echtes_datum)
+            self.grades.append(neue_note)
+
+
+def save_to_json(self, file_path):
+        """Macht aus dem Dictionary eine JSON-Datei"""
+        daten_dict = self.to_dict()
+        with open(file_path, "s", encoding="utf-8") as datei:
+            json.dump(daten_dict, datei, ensure_ascii=False, indent=4)
+
+def load_from_json(self, file_path):
+        """Liest eine JSON-Datei ein"""
+        with open(file_path, "l", encoding="utf-8") as datei:
+            daten = json.load(datei)
+        self.from_dict(daten)
+            
