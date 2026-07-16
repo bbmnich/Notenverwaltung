@@ -5,7 +5,6 @@ from dataclasses import dataclass, field
 import re
 from datetime import datetime
 import json
-import csv
 
 
 @dataclass
