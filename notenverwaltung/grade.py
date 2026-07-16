@@ -13,6 +13,7 @@ class Grade:
     student: Student
     course: Course
     score: float
+    created:datetime
 
     def __post_init__(self):
         # Score muss zwischen 0 und der maximalen Kurs-Note liegen
@@ -99,7 +100,7 @@ class GradeBook:
             raise ValueError("Kurs wurde im Notenbuch nicht gefunden.")
 
         # Wenn Student und Kurs existieren, wird die Note gespeichert
-        new_grade = Grade(student=found_student, course=found_course, score=score)
+        new_grade = Grade(student=found_student, course=found_course, score=score, created=datetime.now())
         self.grades.append(new_grade)
 
     def get_student_grades(self, student_id: str):
@@ -289,12 +290,100 @@ def from_dict(self, data):
 def save_to_json(self, file_path):
         """Macht aus dem Dictionary eine JSON-Datei"""
         daten_dict = self.to_dict()
-        with open(file_path, "s", encoding="utf-8") as datei:
+        with open(file_path, "w" encoding="utf-8") as datei:
             json.dump(daten_dict, datei, ensure_ascii=False, indent=4)
+
 
 def load_from_json(self, file_path):
         """Liest eine JSON-Datei ein"""
-        with open(file_path, "l", encoding="utf-8") as datei:
+        with open(file_path, "r", encoding="utf-8") as datei:
             daten = json.load(datei)
         self.from_dict(daten)
+
+
+
+
+def import_from_csv(self, file_path):
+        """
+        Liest Noten aus einer CSV-Datei ein, prüft das Format per Regex 
+        und prüft, ob die Studenten und Kurse existieren.
+        """
+        fehler_liste = []
+
+        # Werte (Student, Kurs, Note, Datum)
+        muster = r"""^(?P<student_id>[^,]+),(?P<course_id>[^,]+),(?P<score>[0-9.]+),(?P<date>\d{2}\.\d{2}\.\d{4})$"""
+
+        # Datei im öffnen
+        with open(file_path, "r", encoding="utf-8") as f:
+            zeilen = f.readlines()
+
+        # Zeile für Zeile durchgehen
+        for zeilennummer, zeile in enumerate(zeilen, start=1):
+            zeile = zeile.strip() # Versteckte Zeilenumbrüche am Ende entfernen
             
+            # Leere Zeilen oder die CSV-Kopfzeile ignorieren
+            if not zeile or zeile.startswith("student_id"):
+                continue
+
+            # Entspricht die Zeile unserem Regex-Format? 
+            treffer = re.match(muster, zeile)
+            if not treffer:
+                fehler_liste.append(f"Zeile {zeilennummer}: Falsches Format -> '{zeile}'")
+                continue 
+
+            # Daten sicher über den NAMEN aus der Regex abrufen.
+            s_id = treffer.group("student_id")
+            c_id = treffer.group("course_id")
+            score_text = treffer.group("score")
+            datum_text = treffer.group("date")
+
+            # Existiert der Student ?
+            gefundener_student = None
+            for s in self.students:
+                if s.student_id == s_id:
+                    gefundener_student = s
+                    break
+
+            if gefundener_student is None:
+                fehler_liste.append(f"Zeile {zeilennummer}: Student '{s_id}' existiert nicht.")
+                continue
+
+            # Existiert der Kurs ?
+            gefundener_kurs = None
+            for c in self.courses:
+                if c.course_id == c_id:
+                    gefundener_kurs = c
+                    break
+
+            if gefundener_kurs is None:
+                fehler_liste.append(f"Zeile {zeilennummer}: Kurs '{c_id}' existiert nicht.")
+                continue
+
+            # Texte in die richtigen Datentypen (float, datetime) umwandeln
+            formatiertes_datum = datetime.strptime(datum_text, "%d.%m.%Y")
+            
+            neue_note = Grade(student=gefundener_student,course=gefundener_kurs,score=float(score_text),
+                created_at=formatiertes_datum) 
+            self.grades.append(neue_note)
+
+        # Liste der aufgetretenen Fehler zurückgeben 
+        return fehler_liste
+
+def export_to_csv(self, file_path):
+        """Exportiert Noten für Excel oder andere Programme"""
+        
+     
+        # newline="" keine leeren Zwischenzeilen
+        with open(file_path, "w", encoding="utf-8", newline="") as datei:
+            
+            # Die Kopfzeile schreiben
+            datei.write("student_id,course_id,score,date\n")
+            
+            # Geht durch alle Noten und wandelt Objekte wieder in Text um
+            for g in self.grades:
+                s_id = g.student.student_id
+                c_id = g.course.course_id
+                score_text = str(g.score)
+                datum_text = g.created_at.strftime("%d.%m.%Y")
+                
+                datei.write(f"{s_id},{c_id},{score_text},{datum_text}\n")
