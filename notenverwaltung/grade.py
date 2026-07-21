@@ -1,6 +1,6 @@
 from dataclasses import dataclass
-from notenverwaltung.student import Student
-from notenverwaltung.course import Course
+from student import Student
+from course import Course
 from dataclasses import dataclass, field
 import re
 from datetime import datetime
@@ -52,7 +52,7 @@ class Grade:
         # Prozentsatz fuer die Textausgabe auf 1 Nachkommastelle runden
         rounded_percentage = round(self.percentage, 1)
             
-        return "Note: " + self.student.full_name + " in " + self.course.course_name + " - " + str(self.score) + " Punkte (" + str(rounded_percentage) + "%, Note: " + self.letter_grade + ", Status: " + status + ")"
+        return "Note: " + self.student.full_name + " in " + self.course.name + " - " + str(self.score) + " Punkte (" + str(rounded_percentage) + "%, Note: " + self.letter_grade + ", Status: " + status + ")"
     
     
     
