@@ -1,5 +1,5 @@
 import pytest
-from notenverwaltung.course import Course
+from Notenverwaltung_Projekt.notenverwaltung.models.course import Course
 
 
 # prüft ob Kurs korrekt angelegt wird

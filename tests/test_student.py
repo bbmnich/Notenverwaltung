@@ -1,5 +1,5 @@
 import pytest
-from notenverwaltung.student import Student
+from Notenverwaltung_Projekt.notenverwaltung.models.student import Student
 
 
 

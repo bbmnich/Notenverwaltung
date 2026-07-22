@@ -1,20 +1,23 @@
-from database import DbManager
-from storage import SqliteGradeStore
-from gradebook import GradeBook
-from student import Student
-from course import Course
-from grade import Grade
+from datetime import datetime
+from .storage import SqliteGradeStore
+from .gradebook import GradeBook
+from .models.student import Student
+from .models.course import Course
+from .models.grade import Grade
 
 def main():
     print("--- Starte Notenverwaltung ---")
     
-    # Datenbank-Manager initialisieren
-    db = DbManager("notenverwaltung.db")
-    db.create()
-    
     # SQLite-Store und GradeBook initialisieren
-    store = SqliteGradeStore(db)
+    store = SqliteGradeStore("notenverwaltung.db")
     book = GradeBook(store)
+
+    # Alte Testdaten vor dem Start bereinigen, damit nichts doppelt ist
+    with store.get_connection() as conn:
+        conn.execute("DELETE FROM grades")
+        conn.execute("DELETE FROM students")
+        conn.execute("DELETE FROM courses")
+        conn.commit()
     
     # Test-Studenten und Kurs
     student = Student("S100", "Barbara", "Mnich", "bbmnich@example.com")
@@ -24,7 +27,7 @@ def main():
     book.add_course(course)
     
     # Note erfassen
-    grade = Grade(student, course, 92.5, "2026-07-20")
+    grade = Grade(student, course, 92.5, datetime(2026, 7, 20))
     book.record_grade(grade)
     print("Note gespeichert!")
     
@@ -33,12 +36,12 @@ def main():
     count_py, avg_py = book.get_student_statistics_python("S100")
     print(f"Python-Ansatz: {count_py} Noten, Durchschnitt = {avg_py}")
     
-    count_sql, avg_sql = db.get_student_statistics_sql("S100")
+    count_sql, avg_sql = store.get_student_statistics_sql("S100")
     print(f"SQL-Ansatz:    {count_sql} Noten, Durchschnitt = {avg_sql}")
     
     # Kurs-Statistik (GROUP BY)
     print("\n--- Kurs-Statistik (GROUP BY) ---")
-    kurs_stats = db.get_courses_statistics_sql()
+    kurs_stats = store.get_courses_statistics_sql()
     for row in kurs_stats:
         print(f"Kurs-ID: {row['course_id']}, Anzahl Noten: {row['COUNT(score)']}, Schnitt: {row['AVG(score)']}")
 

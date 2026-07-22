@@ -1,7 +1,7 @@
 import pytest
-from notenverwaltung.grade import GradeBook
-from notenverwaltung.student import Student
-from notenverwaltung.course import Course
+from Notenverwaltung_Projekt.notenverwaltung.models.grade import GradeBook
+from Notenverwaltung_Projekt.notenverwaltung.models.student import Student
+from Notenverwaltung_Projekt.notenverwaltung.models.course import Course
 
 @pytest.fixture
 def test_gradebook():
