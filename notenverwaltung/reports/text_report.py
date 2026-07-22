@@ -17,7 +17,7 @@ class TextReportGenerator(ReportGenerator):
             
         grades = self.gradebook.get_student_grades(student_id)
         
-        # Namen sicher auslesen (egal ob Objekt oder Dictionary)
+        # Namen sicher auslesen
         try:
             s_name = f"{student.first_name} {student.last_name}"
         except AttributeError:

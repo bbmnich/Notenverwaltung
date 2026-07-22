@@ -47,7 +47,7 @@ def get_course_dropdown_choices():
 def add_student_action(s_id, first, last, email):
     # Validierung und Speicherung eines neuen Studenten
     if not s_id or not first or not last:
-        return "Fehler: ID, Vorname und Nachname sind Pflichtfelder!", gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices())
+        return "Fehler: ID, Vorname und Nachname sind Pflichtfelder!", gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices())
     try:
         student = Student(s_id.strip(), first.strip(), last.strip(), email.strip())
         book.add_student(student)
@@ -55,7 +55,24 @@ def add_student_action(s_id, first, last, email):
     except Exception as e:
         msg = f"Fehler: {str(e)}"
     
-    return msg, gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices())
+    return msg, gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices())
+
+def delete_student_action(student_selection):
+    # Löscht einen ausgewählten Studenten und zugehörige Noten
+    if not student_selection:
+        return "Bitte wählen Sie einen Studenten zum Löschen aus.", gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None)
+    
+    s_id = student_selection.split(" - ")[0]
+    try:
+        with store.get_connection() as conn:
+            conn.execute("DELETE FROM grades WHERE student_id = ?", (s_id,))
+            conn.execute("DELETE FROM students WHERE student_id = ?", (s_id,))
+            conn.commit()
+        msg = f"Student mit ID {s_id} erfolgreich gelöscht!"
+    except Exception as e:
+        msg = f"Fehler beim Löschen: {str(e)}"
+    
+    return msg, gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None)
 
 def add_course_action(c_id, name, max_g, pass_g):
     # Validierung und Speicherung eines neuen Kurses
@@ -168,15 +185,28 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue")) as demo:
             btn_gen_s_report = gr.Button("Zeugnis generieren")
             out_s_report = gr.Code(label="Zeugnis-Bericht", language="markdown")
 
-            # Event-Listener für Studenten-Aktionen
-            btn_add_student.click(
-                fn=add_student_action, 
-                inputs=[in_s_id, in_s_first, in_s_last, in_s_email], 
-                outputs=[out_student_msg, student_table, drop_report_student]
-            )
-            
-            btn_refresh_students.click(fn=fetch_students_data, outputs=student_table)
-            btn_gen_s_report.click(fn=generate_student_report_action, inputs=drop_report_student, outputs=out_s_report)
+            gr.Markdown("---")
+            gr.Markdown("#### Student löschen")
+            drop_delete_student = gr.Dropdown(label="Student zum Löschen auswählen", choices=get_student_dropdown_choices())
+            btn_delete_student = gr.Button("Student löschen", variant="stop")
+            out_delete_msg = gr.Textbox(label="Lösch-Status")
+
+            # Aktionen im Studenten-Bereich
+        # Aktionen im Studenten-Bereich
+        btn_add_student.click(
+            fn=add_student_action, 
+            inputs=[in_s_id, in_s_first, in_s_last, in_s_email], 
+            outputs=[out_student_msg, student_table, drop_report_student, drop_delete_student]
+        )
+        
+        btn_delete_student.click(
+            fn=delete_student_action,
+            inputs=[drop_delete_student],
+            outputs=[out_delete_msg, student_table, drop_report_student, drop_delete_student]
+        )
+        
+        btn_refresh_students.click(fn=fetch_students_data, outputs=student_table)
+        btn_gen_s_report.click(fn=generate_student_report_action, inputs=drop_report_student, outputs=out_s_report)
 
         # TAB 2 KURSVERWALTUNG
         with gr.TabItem("Kurse"):
@@ -218,7 +248,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue")) as demo:
             btn_refresh_courses.click(fn=fetch_courses_data, outputs=course_table)
             btn_gen_c_report.click(fn=generate_course_report_action, inputs=drop_report_course, outputs=out_c_report)
 
-        # TAB NOTENERFASSUNG 
+        # TAB 3 NOTENERFASSUNG 
         with gr.TabItem("Noten erfassen"):
             gr.Markdown("### Note für einen Studenten in einem Kurs eintragen")
             with gr.Column():
@@ -234,7 +264,7 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue")) as demo:
             btn_record_grade.click(fn=record_grade_action, inputs=[drop_grade_student, drop_grade_course, in_score], outputs=out_grade_msg)
             btn_refresh_dropdowns.click(fn=lambda: (gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_course_dropdown_choices())), outputs=[drop_grade_student, drop_grade_course])
 
-        # --- TAB 4: BERICHTE & EXPORT ---
+        # TAB 4 BERICHTE & EXPORT 
         with gr.TabItem("Berichte & Export"):
             gr.Markdown("### Systemweite Berichte und CSV-Export")
             with gr.Row():
