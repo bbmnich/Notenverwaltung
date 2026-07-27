@@ -291,8 +291,10 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue")) as demo:
                 btn_refresh_dropdowns = gr.Button("Dropdowns aktualisieren")
 
             # Steuerungselemente und Aktionen für Notenerfassung
-            # Event-Listener für Notenerfassung
+            # Aktualisierung-Buton für Notenerfassung
             btn_record_grade.click(fn=record_grade_action,inputs=[drop_grade_student, drop_grade_course, in_score], outputs=out_grade_msg)
+            btn_refresh_dropdowns.click(
+                fn=lambda: (gr.update(choices=get_student_dropdown_choices()),gr.update(choices=get_course_dropdown_choices())),outputs=[drop_grade_student, drop_grade_course])
         # TAB 4 BERICHTE & EXPORT 
         with gr.TabItem("Berichte & Export"):
             gr.Markdown("### Systemweite Berichte und CSV-Export")
