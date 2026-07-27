@@ -45,23 +45,19 @@ def get_course_dropdown_choices():
 # AKTIONEN
 
 def add_student_action(s_id, first, last, email):
-    # Erstellung und Speicherung eines neuen Studenten
     if not s_id or not first or not last:
-        return "Fehler: ID, Vorname und Nachname sind Pflichtfelder!", gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices())
+        return "Fehler: ID, Vorname und Nachname sind Pflichtfelder!", gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices())
     try:
         student = Student(s_id.strip(), first.strip(), last.strip(), email.strip())
         book.add_student(student)
         msg = f"Student {first} {last} erfolgreich hinzugefügt!"
     except Exception as e:
         msg = f"Fehler: {str(e)}"
-    
-    return msg, gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices())
-
+    # Aktualisiert Tabelle, Zeugnis-Dropdown, Lösch-Dropdown UND Notenerfassungs-Dropdown
+    return msg, gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_student_dropdown_choices())
 def delete_student_action(student_selection):
-    # Löscht einen ausgewählten Studenten und zugehörige Noten
     if not student_selection:
-        return "Bitte wählen Sie einen Studenten zum Löschen aus.", gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None)
-    
+        return "Bitte wählen Sie einen Studenten zum Löschen aus.", gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None)
     s_id = student_selection.split(" - ")[0]
     try:
         with store.get_connection() as conn:
@@ -72,7 +68,7 @@ def delete_student_action(student_selection):
     except Exception as e:
         msg = f"Fehler beim Löschen: {str(e)}"
     
-    return msg, gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None)
+    return msg, gr.update(value=fetch_students_data()), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None), gr.update(choices=get_student_dropdown_choices(), value=None)
 
 def add_course_action(c_id, name, max_g, pass_g):
     # Erstellen und Speichern eines neuen Kurses
