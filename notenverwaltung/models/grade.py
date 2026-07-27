@@ -22,8 +22,10 @@ class Grade:
 
     @property
     def percentage(self) -> float:
+        #Fängt die Division durch 0 ab, falls max_grade 0 ist
+        if self.course.max_grade <= 0:
         # Prozentsatz berechnen
-        return (self.score / self.course.max_grade) * 100
+         return (self.score / self.course.max_grade) * 100
 
     @property
     def letter_grade(self) -> str:
