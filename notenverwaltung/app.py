@@ -106,16 +106,24 @@ def delete_course_action(course_selection):
     
     return msg, gr.update(value=fetch_courses_data()), gr.update(choices=get_course_dropdown_choices(), value=None), gr.update(choices=get_course_dropdown_choices(), value=None)
 
+
 def record_grade_action(student_selection, course_selection, score_val):
-    # Erfassung und Speicherung einer Note für einen bestimmten Studenten im Kurs
+    # Erfassen und Speichern einer Note für einen bestimmten Studenten im Kurs
     if not student_selection or not course_selection:
         return "Bitte wählen Sie sowohl einen Studenten als auch einen Kurs aus."
     try:
-        s_id = student_selection.split(" - ")[0]
-        c_id = course_selection.split(" - ")[0]
+        # .strip() schützt vor unsichtbaren Leerzeichen am ID´s
+        s_id = student_selection.split(" - ")[0].strip()
+        c_id = course_selection.split(" - ")[0].strip()
         
         student_obj = book.get_student(s_id)
         course_obj = book.get_course(c_id)
+        
+        # Prüfen ob die Objekte wirklich existieren
+        if student_obj is None:
+            return f"Fehler: Student mit ID '{s_id}' wurde in der Datenbank nicht gefunden. Bitte aktualisiere die Dropdowns."
+        if course_obj is None:
+            return f"Fehler: Kurs mit ID '{c_id}' wurde in der Datenbank nicht gefunden. Bitte aktualisiere die Dropdowns."
         
         grade = Grade(student_obj, course_obj, float(score_val), datetime.now())
         book.record_grade(grade)
@@ -287,9 +295,8 @@ with gr.Blocks(theme=gr.themes.Soft(primary_hue="blue")) as demo:
                 btn_refresh_dropdowns = gr.Button("Dropdowns aktualisieren")
 
             # Steuerungselemente und Aktionen für Notenerfassung
-            btn_record_grade.click(fn=record_grade_action, inputs=[drop_grade_student, drop_grade_course, in_score], outputs=out_grade_msg)
-            btn_refresh_dropdowns.click(fn=lambda: (gr.update(choices=get_student_dropdown_choices()), gr.update(choices=get_course_dropdown_choices())), outputs=[drop_grade_student, drop_grade_course])
-
+            # Event-Listener für Notenerfassung
+            btn_record_grade.click(fn=record_grade_action,inputs=[drop_grade_student, drop_grade_course, in_score], outputs=out_grade_msg)
         # TAB 4 BERICHTE & EXPORT 
         with gr.TabItem("Berichte & Export"):
             gr.Markdown("### Systemweite Berichte und CSV-Export")

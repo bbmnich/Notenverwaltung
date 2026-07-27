@@ -1,2 +1,4 @@
 # den automatischen Python-Cache-Ordner ignorieren
 __pycache__/
+#Zertifikat für Gradio ignorieren
+.gradio/
